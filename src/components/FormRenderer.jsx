@@ -83,26 +83,29 @@ export default function FormRenderer() {
       : evalClause(conditions);
   };
 
+  const checkFieldCompletion = (field) => {
+    if (field.conditions && !evaluateConditions(field.conditions)) return true;
+    if (field.type === 'section' && field.subFields) {
+      return field.subFields.every(checkFieldCompletion);
+    }
+    if (field.required) {
+      if (field.type === 'checkboxGroup') {
+        return Array.isArray(formValues[field.id]) && formValues[field.id].length > 0;
+      }
+      return !!formValues[field.id];
+    }
+    return true;
+  };
+
   const isFormFullyCompleted = () => {
-    const checkField = (field) => {
-      if (field.conditions && !evaluateConditions(field.conditions)) return true;
+    return formData.formSections.every((section, index) => {
+      if (index < 18) return true;
+      return section.fields.every(checkFieldCompletion);
+    });
+  };
 
-      if (field.type === 'section' && field.subFields) {
-        return field.subFields.every(checkField);
-      }
-
-      if (field.required) {
-        if (field.type === 'checkboxGroup') {
-          return Array.isArray(formValues[field.id]) && formValues[field.id].length > 0;
-        }
-        return !!formValues[field.id];
-      }
-      return true;
-    };
-
-    return formData.formSections.every(section =>
-      section.fields.every(checkField)
-    );
+  const isCurrentSectionComplete = () => {
+    return currentSection.fields.every(checkFieldCompletion);
   };
 
   const goNext = () => {
@@ -188,7 +191,7 @@ export default function FormRenderer() {
             </button>
             <button
               onClick={goNext}
-              disabled={!currentSection.fields.every(field => field.required ? !!formValues[field.id] : true)}
+              disabled={!isCurrentSectionComplete()}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl shadow-lg transition disabled:opacity-50"
             >
               {currentIndex === formData.formSections.length - 1 ? 'Submit' : 'Next'}
