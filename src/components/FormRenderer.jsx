@@ -16,9 +16,6 @@ export default function FormRenderer() {
   const [expandedFields, setExpandedFields] = useState({});
   const currentSection = formData.formSections[currentIndex];
 
-  // ---------------------------
-  // Text Interpolation Logic
-  // ---------------------------
   const interpolateText = (text, values) => {
     if (typeof text !== 'string') return text;
 
@@ -67,36 +64,47 @@ export default function FormRenderer() {
     return interpolated.replace(/\{\{field:[^}]+\}\}/g, '');
   };
 
-  // ---------------------------
-  // Validation: Required Fields
-  // ---------------------------
-  const allRequiredFilled = currentSection.fields.every(field => {
-    if (field.required) {
-      if (field.type === 'checkboxGroup') {
-        return Array.isArray(formValues[field.id]) && formValues[field.id].length > 0;
+  const evaluateConditions = (conditions) => {
+    if (!conditions) return true;
+    const evalClause = (clause) => {
+      const value = formValues[clause.field];
+      if (clause.operator === 'eq') return value === clause.value;
+      if (clause.operator === 'in') return clause.value.includes(value);
+      if (clause.operator === 'AND' || clause.operator === 'OR') {
+        const results = clause.clauses.map(evalClause);
+        return clause.operator === 'AND'
+          ? results.every(Boolean)
+          : results.some(Boolean);
       }
-      return !!formValues[field.id];
-    }
-    return true;
-  });
+      return false;
+    };
+    return Array.isArray(conditions)
+      ? conditions.every(evalClause)
+      : evalClause(conditions);
+  };
 
   const isFormFullyCompleted = () => {
-    return formData.formSections.every(section =>
-      section.fields.every(field => {
-        if (field.required) {
-          if (field.type === 'checkboxGroup') {
-            return Array.isArray(formValues[field.id]) && formValues[field.id].length > 0;
-          }
-          return !!formValues[field.id];
+    const checkField = (field) => {
+      if (field.conditions && !evaluateConditions(field.conditions)) return true;
+
+      if (field.type === 'section' && field.subFields) {
+        return field.subFields.every(checkField);
+      }
+
+      if (field.required) {
+        if (field.type === 'checkboxGroup') {
+          return Array.isArray(formValues[field.id]) && formValues[field.id].length > 0;
         }
-        return true;
-      })
+        return !!formValues[field.id];
+      }
+      return true;
+    };
+
+    return formData.formSections.every(section =>
+      section.fields.every(checkField)
     );
   };
 
-  // ---------------------------
-  // Navigation Logic
-  // ---------------------------
   const goNext = () => {
     if (currentIndex < formData.formSections.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -118,13 +126,10 @@ export default function FormRenderer() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <Sidebar currentIndex={currentIndex} setCurrentIndex={setCurrentIndex} />
 
-      {/* Main Content */}
-      <main className="flex-1 flex justify-center py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 flex justify-center py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto">
         <div className="w-full max-w-3xl bg-white rounded-xl shadow-md p-6 sm:p-10">
-          {/* Progress Bar */}
           <div className="mb-6">
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
@@ -137,7 +142,6 @@ export default function FormRenderer() {
             </div>
           </div>
 
-          {/* Title & PDF Download */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               {formData.formTitle || 'Legacy Last Will & Testament Questionnaire'}
@@ -156,12 +160,10 @@ export default function FormRenderer() {
             )}
           </div>
 
-          {/* Section Header */}
           <h2 className="text-xl font-semibold border-b pb-2 mb-8 text-gray-700 border-indigo-600">
             {currentSection.formSection}
           </h2>
 
-          {/* Fields */}
           <div className="space-y-8">
             {currentSection.fields.map((field) => (
               <div key={field.id}>
@@ -176,7 +178,6 @@ export default function FormRenderer() {
             ))}
           </div>
 
-          {/* Navigation */}
           <div className="flex flex-col sm:flex-row justify-between mt-12 gap-4">
             <button
               onClick={goBack}
@@ -187,14 +188,13 @@ export default function FormRenderer() {
             </button>
             <button
               onClick={goNext}
-              disabled={!allRequiredFilled}
+              disabled={!currentSection.fields.every(field => field.required ? !!formValues[field.id] : true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl shadow-lg transition disabled:opacity-50"
             >
               {currentIndex === formData.formSections.length - 1 ? 'Submit' : 'Next'}
             </button>
           </div>
 
-          {/* Save + Preview */}
           <div className="mt-6 flex flex-col sm:flex-row gap-4 items-start">
             <button
               onClick={saveDraft}
@@ -223,7 +223,6 @@ export default function FormRenderer() {
         </div>
       </main>
 
-      {/* Modal */}
       {submitted && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 px-4">
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg text-center max-w-md w-full">
