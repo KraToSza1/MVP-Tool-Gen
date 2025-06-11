@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global layout + dark mode support */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Apply background colors for light/dark theme */
+body {
+  @apply bg-gray-50 dark:bg-gray-900 transition-colors duration-300;
+}
