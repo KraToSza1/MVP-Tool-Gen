@@ -98,8 +98,7 @@ export default function FormRenderer() {
   };
 
   const isFormFullyCompleted = () => {
-    return formData.formSections.every((section, index) => {
-      if (index < 18) return true;
+    return formData.formSections.every((section) => {
       return section.fields.every(checkFieldCompletion);
     });
   };
@@ -150,7 +149,7 @@ export default function FormRenderer() {
               {formData.formTitle || 'Legacy Last Will & Testament Questionnaire'}
             </h1>
 
-            {isFormFullyCompleted() ? (
+            {currentIndex === formData.formSections.length - 1 && isFormFullyCompleted() ? (
               <PDFDownloadLink
                 document={<PDFDocument formValues={formValues} />}
                 fileName="Will-Preview.pdf"
