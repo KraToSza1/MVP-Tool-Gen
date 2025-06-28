@@ -1,29 +1,33 @@
 export function renderTemplate(template, formValues) {
   if (!template || typeof template !== 'string') return '';
-  console.log('[renderTemplate] Template:', template);
-  console.log('[renderTemplate] formValues:', formValues);
-
+  // Replace {{field:section:field:format}} or {{field:section:field}} or {{field:field}}
   return template.replace(
-    /\{\{field:([a-zA-Z0-9_]+):([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?\}\}/g,
-    (_, section, field, format) => {
+    /\{\{field:([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?(?::([a-zA-Z0-9_]+))?\}\}/g,
+    (_, part1, part2, part3) => {
       let value = '';
-      if (formValues[section] && typeof formValues[section] === 'object') {
-        value = formValues[section][field];
-      } else if (formValues[`${section}.${field}`]) {
-        value = formValues[`${section}.${field}`];
-      }
-      if (format === 'formattedAmount' && value) {
-        value = Number(value).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' });
-      }
-      if (format === 'selectedPurposes' && Array.isArray(value)) {
-        value = value.join(' and ');
-      }
-      if (!value) {
-        console.warn(`[renderTemplate] Could not resolve: section="${section}", field="${field}", format="${format}"`);
+      if (part3) {
+        // {{field:section:field:format}}
+        if (formValues[part1] && typeof formValues[part1] === 'object') {
+          value = formValues[part1][part2];
+        }
+        if (part3 === 'formattedAmount' && value) {
+          value = Number(value).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' });
+        }
+        if (part3 === 'selectedPurposes' && Array.isArray(value)) {
+          value = value.join(' and ');
+        }
+      } else if (part2) {
+        // {{field:section:field}}
+        if (formValues[part1] && typeof formValues[part1] === 'object') {
+          value = formValues[part1][part2];
+        } else if (formValues[`${part1}.${part2}`]) {
+          value = formValues[`${part1}.${part2}`];
+        }
       } else {
-        console.log(`[renderTemplate] Resolved: section="${section}", field="${field}", format="${format}" =>`, value);
+        // {{field:field}}
+        value = formValues[part1];
       }
-      return value || '';
+      return value ?? '';
     }
   );
 }

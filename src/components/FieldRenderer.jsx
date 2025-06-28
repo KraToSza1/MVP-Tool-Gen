@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import UniversalModal from './UniversalModal';
+import { UserIcon } from "@heroicons/react/24/outline";
 
 const guardianFields = [
   { id: "title", type: "text", label: "Title" },
@@ -16,7 +17,7 @@ const guardianFields = [
       { value: "Female", label: "Female" }
     ]
   },
-  { id: "mobile", type: "text", label: "Mobile" },
+  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
   { id: "tel2", type: "text", label: "Tel 2." },
   { id: "email", type: "email", label: "Email" },
   { id: "occupation", type: "text", label: "Occupation" },
@@ -38,7 +39,7 @@ const substituteGuardianFields = [
       { value: "Female", label: "Female" }
     ]
   },
-  { id: "mobile", type: "text", label: "Mobile" },
+  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
   { id: "tel2", type: "text", label: "Tel 2." },
   { id: "email", type: "email", label: "Email" },
   { id: "occupation", type: "text", label: "Occupation" },
@@ -60,7 +61,7 @@ const executorFields = [
       { value: "Female", label: "Female" }
     ]
   },
-  { id: "mobile", type: "text", label: "Mobile" },
+  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
   { id: "tel2", type: "text", label: "Tel 2." },
   { id: "email", type: "email", label: "Email" },
   { id: "occupation", type: "text", label: "Occupation" },
@@ -82,7 +83,7 @@ const substituteExecutorFields = [
       { value: "Female", label: "Female" }
     ]
   },
-  { id: "mobile", type: "text", label: "Mobile" },
+  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
   { id: "tel2", type: "text", label: "Tel 2." },
   { id: "email", type: "email", label: "Email" },
   { id: "occupation", type: "text", label: "Occupation" },
@@ -104,7 +105,7 @@ const trusteeFields = [
       { value: "Female", label: "Female" }
     ]
   },
-  { id: "mobile", type: "text", label: "Mobile" },
+  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
   { id: "tel2", type: "text", label: "Tel 2." },
   { id: "email", type: "email", label: "Email" },
   { id: "occupation", type: "text", label: "Occupation" },
@@ -126,7 +127,7 @@ const substituteTrusteeFields = [
       { value: "Female", label: "Female" }
     ]
   },
-  { id: "mobile", type: "text", label: "Mobile" },
+  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
   { id: "tel2", type: "text", label: "Tel 2." },
   { id: "email", type: "email", label: "Email" },
   { id: "occupation", type: "text", label: "Occupation" },
@@ -196,6 +197,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalFields, setModalFields] = useState([]);
   const [modalSection, setModalSection] = useState("");
+  const [showInputs, setShowInputs] = useState({});
   const sigCanvasRef = useRef({});
 
   // --- Section modal handler ---
@@ -206,8 +208,11 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
     // Debug: Section rendering
 
     return (
-      <div className="mb-6 bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-lg">
-        <div className="font-semibold text-indigo-700 mb-2">{field.label}</div>
+      <div className="mb-6 bg-white rounded-xl shadow p-6 border border-gray-100 transition-all duration-300 hover:shadow-lg">
+        <h2 className="flex items-center gap-2 text-xl font-bold mb-4">
+          <UserIcon className="w-6 h-6 text-indigo-500" />
+          {section.label}
+        </h2>
         {entries.length === 0 && (
           <div className="bg-blue-100 text-blue-900 rounded p-3 my-2 text-sm">
             {section.emptyText}
@@ -235,7 +240,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
         ))}
         <button
           type="button"
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded mt-2"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow transition transform hover:scale-105 focus:ring-2 focus:ring-indigo-400"
           onClick={() => {
             setModalFields(section.fields);
             setModalSection(field.id);
@@ -297,25 +302,77 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
 
   // --- Standard text/number field ---
   if (field.type === 'text' || field.type === 'number') {
-    // Debug: Rendering text/number field
+    // Mobile number
+    if (field.id === 'mobile' || field.id === 'tel2') {
+      return (
+        <div className="mb-6">
+          <label className="block font-semibold text-gray-800 mb-1">
+            {field.label}
+            {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          </label>
+          <input
+            type="tel"
+            inputMode="numeric"
+            pattern="^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$"
+            maxLength={15}
+            value={formValues[field.id] || ''}
+            onChange={e => setFormValues({ [field.id]: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
+          />
+        </div>
+      );
+    }
+    // Postcode
+    if (field.id === 'postcode') {
+      return (
+        <div className="mb-6">
+          <label className="block font-semibold text-gray-800 mb-1">
+            {field.label}
+            {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          </label>
+          <input
+            type="text"
+            inputMode="text"
+            pattern="^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$"
+            autoCapitalize="characters"
+            maxLength={8}
+            value={formValues[field.id] || ''}
+            onChange={e => setFormValues({ [field.id]: e.target.value.toUpperCase() })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
+          />
+        </div>
+      );
+    }
+    // Email
+    if (field.type === 'email' || field.id === 'email') {
+      return (
+        <div className="mb-6">
+          <label className="block font-semibold text-gray-800 mb-1">
+            {field.label}
+            {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          </label>
+          <input
+            type="email"
+            value={formValues[field.id] || ''}
+            onChange={e => setFormValues({ [field.id]: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
+            required
+          />
+        </div>
+      );
+    }
+    // Default text/number
     return (
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-1">
           {field.label}
           {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
         </label>
-        {field.infoText && (
-          <p className="text-xs text-gray-500 mb-1 italic">{field.infoText}</p>
-        )}
         <input
           type={field.type}
-          placeholder={field.placeholder || ''}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
           value={formValues[field.id] || ''}
-          onChange={(e) => {
-            setFormValues((prev) => ({ ...prev, [field.id]: e.target.value }))
-          }
-          }
+          onChange={e => setFormValues({ [field.id]: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
         />
       </div>
     );
@@ -337,9 +394,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
           placeholder={field.placeholder || ''}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
           value={formValues[field.id] || ''}
-          onChange={(e) => {
-            setFormValues((prev) => ({ ...prev, [field.id]: e.target.value }))
-          }}
+          onChange={e => setFormValues({ [field.id]: e.target.value })}
         />
       </div>
     );
@@ -420,6 +475,12 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
                     const index = newValue.indexOf(opt.value);
                     if (index > -1) newValue.splice(index, 1);
                   }
+                  console.log(
+                    `[CheckboxGroup] Field: ${field.id}, Option: ${opt.value}, Checked: ${e.target.checked}, Before:`,
+                    formValues[field.id],
+                    "After:",
+                    newValue
+                  );
                   setFormValues((prev) => ({
                     ...prev,
                     [field.id]: newValue,
@@ -501,21 +562,40 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
         <label className="block font-semibold text-gray-800 mb-1">{field.label}</label>
         <input
           type="number"
-          step="0.01"
-          className="w-full border border-gray-300 rounded-lg px-4 py-2"
+          min={0}
           value={formValues[field.id] || ''}
-          onChange={e => {
-            setFormValues(prev => ({ ...prev, [field.id]: e.target.value }));
-          }}
+          onChange={e => setFormValues({ [field.id]: e.target.value })}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
         />
       </div>
     );
   }
 
   // --- Section field ---
-  if (field.type === 'section') {
-    // Optionally render subfields here if needed
-    return null;
+  if (field.type === 'section' && Array.isArray(field.subFields)) {
+    return (
+      <div className="mb-6">
+        <label className="block font-semibold text-gray-800 mb-2">{field.label}</label>
+        <div className="space-y-4">
+          {field.subFields.map(subField => (
+            <FieldRenderer
+              key={subField.id}
+              field={subField}
+              formValues={formValues[field.id] || {}} // This is correct
+              setFormValues={subValue => {
+                setFormValues(prev => ({
+                  ...prev,
+                  [field.id]: {
+                    ...(prev[field.id] || {}),
+                    ...subValue
+                  }
+                }));
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   // --- Defensive fallback ---

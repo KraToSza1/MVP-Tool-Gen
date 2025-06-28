@@ -12,46 +12,57 @@ import WillPreview from './WillPreview.jsx';
 console.log('[DEBUG] Loaded formData:', formData);
 
 function deepGet(obj, path) {
-  if (!obj) {
-    console.warn(`[deepGet] No object provided for path: ${path}`);
-    return '';
-  }
+  if (!obj || !path) return '';
   const parts = path.split(/[:.]/);
   let current = obj;
   for (let part of parts) {
-    if (current == null) {
-      console.warn(`[deepGet] Null/undefined at part "${part}" for path: ${path}`);
-      return '';
-    }
+    if (current == null) return '';
     current = current[part];
   }
+  // Handle arrays
   if (Array.isArray(current)) {
-    const arrVal = current.map(item =>
-      typeof item === 'object'
-        ? item.fullDetails || item.value || Object.values(item).filter(v => typeof v === 'string').join(' ')
-        : String(item)
-    ).join(', ');
-    console.log(`[deepGet] Array result for path "${path}":`, arrVal);
-    return arrVal;
+    return current
+      .map(item => {
+        if (item == null) return '';
+        if (typeof item === 'object') {
+          // Prefer fullDetails, then value, then join string values
+          return (
+            item.fullDetails ||
+            item.value ||
+            Object.values(item)
+              .filter(v => typeof v === 'string' && v.trim() !== '')
+              .join(' ')
+          );
+        }
+        return String(item);
+      })
+      .filter(Boolean)
+      .join(', ');
   }
+  // Handle objects
   if (current && typeof current === 'object') {
-    const objVal = current.fullDetails || current.value || Object.values(current).filter(v => typeof v === 'string').join(' ');
-    console.log(`[deepGet] Object result for path "${path}":`, objVal);
-    return objVal;
+    return (
+      current.fullDetails ||
+      current.value ||
+      Object.values(current)
+        .filter(v => typeof v === 'string' && v.trim() !== '')
+        .join(' ')
+    );
   }
-  console.log(`[deepGet] Final value for path "${path}":`, current ?? '');
-  return current ?? '';
+  // Handle primitives
+  if (current === undefined || current === null) return '';
+  return String(current);
 }
 
 const interpolateText = (text, values) => {
   if (typeof text !== 'string') return text;
-  return text.replace(/\{\{field:([^}]+)\}\}/g, (_, path) => {
+  // Support optional fallback: {{field:foo|Unknown}}
+  return text.replace(/\{\{field:([^}|]+)(?:\|([^}]+))?\}\}/g, (_, path, fallback) => {
     const trimmedPath = path.trim();
-    const result = deepGet(values, trimmedPath);
-    if (result === '' || result === undefined) {
-      console.warn(`[interpolateText] Could not resolve: "${trimmedPath}" in`, values);
-    } else {
-      console.log(`[interpolateText] Resolved: "${trimmedPath}" =>`, result);
+    let result = deepGet(values, trimmedPath);
+    // If result is falsy, use fallback if provided
+    if (result === '' || result === undefined || result === null) {
+      result = fallback !== undefined ? fallback : '';
     }
     return result;
   });
@@ -64,7 +75,11 @@ const buildInitialValues = () => {
       if (field.type === 'section' && field.subFields) {
         traverseFields(field.subFields);
       } else {
-        initialValues[field.id] = field.value ?? '';
+        if (field.type === 'checkboxGroup') {
+          initialValues[field.id] = field.value ?? [];
+        } else {
+          initialValues[field.id] = field.value ?? '';
+        }
       }
     });
   };
@@ -184,6 +199,14 @@ export default function FormRenderer() {
   const [expandedFields, setExpandedFields] = useState({});
   const [willPreviewOpen, setWillPreviewOpen] = useState(false);
   const currentSection = formData.formSections[currentIndex];
+
+  if (!currentSection) {
+    return (
+      <div className="p-8 text-red-600 font-bold">
+        Error: This section does not exist. Please check your form data or navigation logic.
+      </div>
+    );
+  }
 
   useEffect(() => {
     localStorage.setItem('willForm', JSON.stringify(formValues));
