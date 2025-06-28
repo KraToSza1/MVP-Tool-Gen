@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Document,
   Page,
@@ -184,8 +184,8 @@ const renderFields = (fields, formValues, parentKey = '') =>
             {value.map((item, i) => (
               <View key={`${key}-${i}`} style={{ width: '48%', marginBottom: 12 }}>
                 {typeof item === 'object' ? (
-                  Object.entries(item).map(([k, v]) => (
-                    <Text key={k} style={styles.bodyText}>
+                  Object.entries(item).map(([k, v], j) => (
+                    <Text key={`${k}-${j}`} style={styles.bodyText}>
                       <Text style={styles.fieldLabel}>{k.replace(/([A-Z])/g, ' $1')}: </Text>
                       {String(v)}
                     </Text>
@@ -206,65 +206,80 @@ const renderFields = (fields, formValues, parentKey = '') =>
 // =====================
 // MAIN COMPONENT
 // =====================
-const PDFDocument = ({ formValues = {} }) => (
-  <Document>
-    {/* COVER PAGE */}
-    <Page size="A4" style={styles.coverPage}>
-      <View style={styles.borderOuter} fixed />
-      <View style={styles.borderInner} fixed />
-      <Text style={styles.coverTitle}>Last Will and Testament</Text>
-      <Text style={styles.coverOf}>-of-</Text>
-      <Image style={styles.coverLogo} src={logo} />
-    </Page>
+const PDFDocument = ({ formValues = {} }) => {
+  useEffect(() => {
+    console.log('DEBUG: PDFDocument formValues', formValues);
+  }, [formValues]);
 
-    {/* CONTENT PAGE */}
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.bodyText}>
-        This is the Will of {getFullName(formValues)}.
-      </Text>
-      {formSchema.formSections.map((section, idx) =>
-        renderFields(section.fields, formValues, `section${idx}-`)
-      )}
-      <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber}/${totalPages}`} fixed />
-    </Page>
+  // Debug each section and field as they're rendered
+  formSchema.formSections.forEach((section, idx) => {
+    console.log(`[PDFDocument] Section #${idx}:`, section.label || section.id, section);
+    section.fields.forEach((field) => {
+      const value = formValues[field.id];
+      console.log(`[PDFDocument] Field: ${field.id} (${field.type})`, value);
+    });
+  });
 
-    {/* SIGNATURE PAGE */}
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.bodyText}>Signed by, to give effect to this Will, on</Text>
-      <Text style={{ marginTop: 18 }}>Date</Text>
-      <View style={styles.line} />
+  return (
+    <Document>
+      {/* COVER PAGE */}
+      <Page size="A4" style={styles.coverPage}>
+        <View style={styles.borderOuter} fixed />
+        <View style={styles.borderInner} fixed />
+        <Text style={styles.coverTitle}>Last Will and Testament</Text>
+        <Text style={styles.coverOf}>-of-</Text>
+        <Image style={styles.coverLogo} src={logo} />
+      </Page>
 
-      <Text style={{ marginTop: 18 }}>SIGNATURE</Text>
-      {formValues.testatorSignature ? (
-        <Image src={formValues.testatorSignature} style={styles.signatureImage} />
-      ) : (
+      {/* CONTENT PAGE */}
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.bodyText}>
+          This is the Will of {getFullName(formValues)}.
+        </Text>
+        {formSchema.formSections.map((section, idx) =>
+          renderFields(section.fields, formValues, `section${idx}-`)
+        )}
+        <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber}/${totalPages}`} fixed />
+      </Page>
+
+      {/* SIGNATURE PAGE */}
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.bodyText}>Signed by, to give effect to this Will, on</Text>
+        <Text style={{ marginTop: 18 }}>Date</Text>
         <View style={styles.line} />
-      )}
 
-      <Text style={styles.bodyText}>
-        We confirm this Will was signed first by in our presence and then by both of us in the presence of.
-      </Text>
+        <Text style={{ marginTop: 18 }}>SIGNATURE</Text>
+        {formValues.testatorSignature ? (
+          <Image src={formValues.testatorSignature} style={styles.signatureImage} />
+        ) : (
+          <View style={styles.line} />
+        )}
 
-      <View style={styles.witnessRow}>
-        <View style={styles.witnessCol}>
-          <Text>Witness 1</Text>
-          <Text style={{ marginTop: 10 }}>SIGNATURE</Text>
-          <View style={styles.line} />
-          <Text>Full name</Text>
-          <View style={styles.line} />
+        <Text style={styles.bodyText}>
+          We confirm this Will was signed first by in our presence and then by both of us in the presence of.
+        </Text>
+
+        <View style={styles.witnessRow}>
+          <View style={styles.witnessCol}>
+            <Text>Witness 1</Text>
+            <Text style={{ marginTop: 10 }}>SIGNATURE</Text>
+            <View style={styles.line} />
+            <Text>Full name</Text>
+            <View style={styles.line} />
+          </View>
+          <View style={styles.witnessCol}>
+            <Text>Witness 2</Text>
+            <Text style={{ marginTop: 10 }}>SIGNATURE</Text>
+            <View style={styles.line} />
+            <Text>Full name</Text>
+            <View style={styles.line} />
+          </View>
         </View>
-        <View style={styles.witnessCol}>
-          <Text>Witness 2</Text>
-          <Text style={{ marginTop: 10 }}>SIGNATURE</Text>
-          <View style={styles.line} />
-          <Text>Full name</Text>
-          <View style={styles.line} />
-        </View>
-      </View>
 
-      <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber}/${totalPages}`} fixed />
-    </Page>
-  </Document>
-);
+        <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber}/${totalPages}`} fixed />
+      </Page>
+    </Document>
+  );
+};
 
 export default PDFDocument;

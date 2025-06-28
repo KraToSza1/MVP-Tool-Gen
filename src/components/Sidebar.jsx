@@ -10,7 +10,7 @@ export default function Sidebar({ currentIndex, setCurrentIndex }) {
             const isActive = idx === currentIndex;
 
             return (
-              <li key={section.formSection}>
+              <li key={section.formSection || `section-${idx}`}>
                 <button
                   onClick={() => setCurrentIndex(idx)}
                   className={`w-full text-left px-4 py-2 rounded transition font-medium tracking-wide focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
