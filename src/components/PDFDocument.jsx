@@ -392,7 +392,7 @@ return (
           <Text style={styles.bodyText}>Charity: {formValues.charityProvision || '[N/A]'}</Text>
 
           {/* 5. BENEFICIARIES */}
-          <View break>
+          <View break style={{ marginTop: 40 }}>
             <Text style={styles.subheading}>BENEFICIARIES</Text>
             {renderPartyList([
               ...extractPeople(formValues.finalBeneficiariesSection),
