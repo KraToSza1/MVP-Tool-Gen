@@ -1,5 +1,5 @@
 import React from 'react';
-import formData from '../data/Complete-WillSuite-Form-Data.json';
+import formData from '../data/Complete-WillSuite-Form-Data-FINAL.json';
 
 export default function Sidebar({ currentIndex, setCurrentIndex }) {
   return (

@@ -175,7 +175,8 @@
               { "value": "Separated", "label": "Separated" },
               { "value": "Cohabiting", "label": "Cohabiting" }
             ],
-            "value": null
+            "value": null,
+            "willClauseText": "The Testator's marital status is {{field:maritalStatus}}."
           },
           {
             "id": "contemplation",
@@ -190,9 +191,10 @@
             "infoText": "Under normal circumstances, a Will is revoked upon marriage/civil partnership. Selecting yes to this question will confirm that the Testator is making this Will in contemplation of marriage or civil partnership which will ensure the Will is not revoked if this event is to occur.",
             "value": null,
             "conditions": [
-              { "field": "maritalStatus", "operator": "in", "value": ["Single", "Widowed", "Divorced", "Cohabiting"] }
+              { "field": "maritalStatus", "operator": "in", "value": ["Single", "Widowed", "Divorced", "Cohabiting"] }              
             ]
           },
+
           {
             "id": "partnerSection",
             "type": "section",

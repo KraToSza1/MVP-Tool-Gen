@@ -1,16 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import formData from '../data/Complete-WillSuite-Form-Data.json';
+import formData from '../data/Complete-WillSuite-Form-Data-FINAL.json';
 import Sidebar from './Sidebar.jsx';
 import FieldRenderer from './FieldRenderer.jsx';
 import { Download } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import PDFDocument from './PDFDocument.jsx';
-import { renderTemplate } from '../utils/templateUtils';
 import WillPreview from './WillPreview.jsx';
+import AddModalButton from './AddModalButton.jsx';
 
 // --- DEBUG: Log formData structure on load ---
 console.log('[DEBUG] Loaded formData:', formData);
 
+/**
+ * Format an array of person objects (used for arrays in deepGet).
+ */
+function formatPersonArray(arr, keys = ["relationship", "fullName", "email", "partnerAddress", "address"]) {
+  if (!Array.isArray(arr) || arr.length === 0) return "";
+  return arr
+    .map(item => {
+      if (typeof item === "object" && item !== null) {
+        if (item.fullDetails) return item.fullDetails;
+        // Join all relevant keys if present, skipping empty values
+        return keys.map(k => item[k]).filter(Boolean).join(" | ");
+      }
+      return String(item);
+    })
+    .filter(Boolean)
+    .join("; ");
+}
+
+/**
+ * Safely get nested data by path, supporting arrays and objects.
+ */
 function deepGet(obj, path) {
   if (!obj || !path) return '';
   const parts = path.split(/[:.]/);
@@ -19,27 +40,9 @@ function deepGet(obj, path) {
     if (current == null) return '';
     current = current[part];
   }
-  // Handle arrays
   if (Array.isArray(current)) {
-    return current
-      .map(item => {
-        if (item == null) return '';
-        if (typeof item === 'object') {
-          // Prefer fullDetails, then value, then join string values
-          return (
-            item.fullDetails ||
-            item.value ||
-            Object.values(item)
-              .filter(v => typeof v === 'string' && v.trim() !== '')
-              .join(' ')
-          );
-        }
-        return String(item);
-      })
-      .filter(Boolean)
-      .join(', ');
+    return formatPersonArray(current);
   }
-  // Handle objects
   if (current && typeof current === 'object') {
     return (
       current.fullDetails ||
@@ -49,25 +52,25 @@ function deepGet(obj, path) {
         .join(' ')
     );
   }
-  // Handle primitives
   if (current === undefined || current === null) return '';
   return String(current);
 }
 
+/**
+ * Interpolates text like "Hello {{field:foo}}" with values from form data.
+ * Supports fallback: {{field:foo|Unknown}}
+ */
 const interpolateText = (text, values) => {
   if (typeof text !== 'string') return text;
-  // Support optional fallback: {{field:foo|Unknown}}
   return text.replace(/\{\{field:([^}|]+)(?:\|([^}]+))?\}\}/g, (_, path, fallback) => {
     const trimmedPath = path.trim();
     let result = deepGet(values, trimmedPath);
-    // If result is falsy, use fallback if provided
     if (result === '' || result === undefined || result === null) {
       result = fallback !== undefined ? fallback : '';
     }
     return result;
   });
 };
-
 const buildInitialValues = () => {
   const initialValues = {};
   const traverseFields = (fields) => {
@@ -86,6 +89,7 @@ const buildInitialValues = () => {
   formData.formSections.forEach((section) => {
     traverseFields(section.fields);
   });
+  console.log('[INIT] Initial form values:', initialValues);
   return initialValues;
 };
 
@@ -180,6 +184,7 @@ function loadFormFromFile(setFormValues) {
       try {
         const data = JSON.parse(event.target.result);
         setFormValues(data);
+        console.log('[FileLoader] Loaded form values:', data);
       } catch (err) {
         alert("Invalid JSON file.");
       }
@@ -189,11 +194,33 @@ function loadFormFromFile(setFormValues) {
   input.click();
 }
 
+function collectClauses(fields, values) {
+  let clauses = [];
+  fields.forEach(field => {
+    if (field.type === 'section' && Array.isArray(field.subFields)) {
+      console.log(`[ClauseGen] Collecting section: ${field.id}, Subfields:`, field.subFields.map(f => f.id));
+      clauses = clauses.concat(collectClauses(field.subFields, values[field.id] || {}));
+    } else if (field.type === 'radio' && Array.isArray(field.options)) {
+      const selected = field.options.find(opt => opt.value === values[field.id]);
+      if (selected && selected.willClauseText) {
+        clauses.push(interpolateText(selected.willClauseText, values));
+      } else if (field.willClauseText) {
+        clauses.push(interpolateText(field.willClauseText, values));
+      }
+    } else if (field.willClauseText) {
+      clauses.push(interpolateText(field.willClauseText, values));
+    }
+  });
+  return clauses;
+}
+
 export default function FormRenderer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [formValues, setFormValues] = useState(() => {
     const saved = localStorage.getItem('willForm');
-    return saved ? JSON.parse(saved) : buildInitialValues();
+    const initial = saved ? JSON.parse(saved) : buildInitialValues();
+    console.log('[INIT] useState formValues:', initial);
+    return initial;
   });
   const [submitted, setSubmitted] = useState(false);
   const [expandedFields, setExpandedFields] = useState({});
@@ -210,34 +237,58 @@ export default function FormRenderer() {
 
   useEffect(() => {
     localStorage.setItem('willForm', JSON.stringify(formValues));
+    console.log('[EFFECT] Saved formValues to localStorage:', formValues);
   }, [formValues]);
 
-  // --- DEBUG: Log every time formValues changes ---
   useEffect(() => {
-    console.log('[DEBUG] formValues updated:', formValues);
-    const aggregatedValues = buildAggregatedValues(formValues);
-    console.log('[DEBUG] aggregatedValues:', aggregatedValues);
-    const previewValues = { ...formValues, ...aggregatedValues };
-    console.log('[DEBUG] previewValues:', previewValues);
-  }, [formValues]);
+    console.log('[EFFECT] [Section] Now rendering:', currentSection.formSection);
+    currentSection.fields.forEach(field => {
+      console.log('[EFFECT] Field:', field.id, 'type:', field.type, 'conditions:', field.conditions, 'value:', formValues[field.id]);
+    });
+  }, [currentSection, formValues]);
 
-  const evaluateConditions = (conditions) => {
-    if (!conditions) return true;
-    const evalClause = (clause) => {
-      const value = formValues[clause.field];
-      if (clause.operator === 'eq') return value === clause.value;
-      if (clause.operator === 'in') return clause.value?.includes?.(value);
-      if (clause.operator === 'AND' || clause.operator === 'OR') {
-        const results = clause.clauses.map(evalClause);
-        return clause.operator === 'AND' ? results.every(Boolean) : results.some(Boolean);
-      }
-      return false;
-    };
-    return Array.isArray(conditions) ? conditions.every(evalClause) : evalClause(conditions);
-  };
+function evaluateConditions(conditions, formValues, logic = "AND") {
+  if (!conditions) return true;
+    console.log("[COND DEBUG]", { conditions, formValues, logic });
+
+  if (Array.isArray(conditions)) {
+    // Use passed logic if present, else default to AND
+    const effectiveLogic = logic || "AND";
+    const results = conditions.map(cond =>
+      evaluateConditions(cond, formValues) // Each array element is usually an object; logic only applies at this level
+    );
+    return effectiveLogic === "AND"
+      ? results.every(Boolean)
+      : results.some(Boolean);
+  }
+
+  if (typeof conditions === "object" && conditions.operator) {
+    // Handle compound logic (AND/OR)
+    if (conditions.operator === "AND" || conditions.operator === "OR") {
+      const results = conditions.clauses.map(cond =>
+        evaluateConditions(cond, formValues)
+      );
+      return conditions.operator === "AND"
+        ? results.every(Boolean)
+        : results.some(Boolean);
+    }
+    // Leaf operators
+    const value = formValues[conditions.field];
+    if (conditions.operator === "eq") return value === conditions.value;
+    if (conditions.operator === "neq") return value !== conditions.value;
+    if (conditions.operator === "in") return Array.isArray(conditions.value)
+      ? conditions.value.includes(value)
+      : false;
+    return false;
+  }
+  return false;
+}
 
   const checkFieldCompletion = (field) => {
-    if (field.conditions && !evaluateConditions(field.conditions)) return true;
+    if (field.conditions && !evaluateConditions(field.conditions, formValues)) {
+      console.log('[CheckField] Field', field.id, 'is hidden by conditions, treating as complete.');
+      return true;
+    }
     if (field.type === 'section' && Array.isArray(field.subFields)) {
       return field.subFields.every(checkFieldCompletion);
     }
@@ -266,17 +317,18 @@ export default function FormRenderer() {
     currentSection.fields.every(checkFieldCompletion);
 
   const goNext = () => {
-    console.log("[Navigation] Next clicked. Current index:", currentIndex);
+    console.log("[NAV] Next clicked. Current index:", currentIndex, "Section complete?", isCurrentSectionComplete());
     if (currentIndex < formData.formSections.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
       setSubmitted(true);
       localStorage.removeItem('willForm');
+      console.log("[NAV] Form submitted and localStorage cleared.");
     }
   };
 
   const goBack = () => {
-    console.log("[Navigation] Back clicked. Current index:", currentIndex);
+    console.log("[NAV] Back clicked. Current index:", currentIndex);
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
@@ -284,6 +336,7 @@ export default function FormRenderer() {
 
   const saveDraft = () => {
     localStorage.setItem('willForm', JSON.stringify(formValues));
+    console.log('[Button] Saved draft:', formValues);
   };
 
   const allClauses = formData.formSections.flatMap(section =>
@@ -295,15 +348,29 @@ export default function FormRenderer() {
   const aggregatedValues = buildAggregatedValues(formValues);
   const previewValues = { ...formValues, ...aggregatedValues };
 
-  // --- DEBUG: Log current section and fields ---
-  console.log('[DEBUG] Current section:', currentSection.formSection);
+  // --- MAIN DEBUG DUMP BEFORE RENDER ---
+  console.log('[RENDER] Rendering section:', currentSection.formSection);
   currentSection.fields.forEach(field => {
-    console.log('[DEBUG] Rendering field', field.id, 'value:', formValues[field.id]);
-    if (field.willClauseText) {
-      const interpolated = interpolateText(field.willClauseText, previewValues);
-      console.log(`[DEBUG] Interpolated clause for field "${field.id}":`, interpolated);
-    }
+    console.log('[RENDER] Will render field:', field.id, 'type:', field.type, 'conditions:', field.conditions, 'value:', formValues[field.id]);
   });
+
+  const shouldShowAddPartner = () => {
+  const ms = formValues.maritalStatus;
+  const cont = formValues.contemplation;
+
+  // 1. If maritalStatus is Civil Partnership, Married, or Cohabiting
+  if (["Civil Partnership", "Married", "Cohabiting"].includes(ms)) {
+    return true;
+  }
+  // 2. OR If maritalStatus is Single, Widowed, Divorced AND contemplation is one of the two options
+  if (
+    ["Single", "Widowed", "Divorced"].includes(ms) &&
+    ["Contemplation of Civil Partnership", "Contemplation of Marriage"].includes(cont)
+  ) {
+    return true;
+  }
+  return false;
+};
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -327,7 +394,6 @@ export default function FormRenderer() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               {formData.formTitle || 'Will Questionnaire'}
             </h1>
-
             {currentIndex === formData.formSections.length - 1 && isFormFullyCompleted() ? (
               <PDFDownloadLink
                 document={<PDFDocument formValues={formValues} />}
@@ -358,8 +424,8 @@ export default function FormRenderer() {
               </div>
             ))}
           </div>
-
-          <div className="flex flex-col sm:flex-row justify-between mt-12 gap-4">
+          <div className="flex flex-row justify-between mt-12 items-center">
+            {/* Left side: Back button */}
             <button
               onClick={goBack}
               disabled={currentIndex === 0}
@@ -367,21 +433,39 @@ export default function FormRenderer() {
             >
               Back
             </button>
-            <button
-              onClick={goNext}
-              disabled={!isCurrentSectionComplete()}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl shadow-lg transition disabled:opacity-50"
-            >
-              {currentIndex === formData.formSections.length - 1 ? 'Submit' : 'Next'}
-            </button>
+
+            {/* Right side: Add Partner (ONLY on Step 2!) and Next */}
+            <div className="flex flex-row gap-2 items-center">
+              {/* Only show Add Partner on step 2 (index 1), AND only if conditions are met */}
+              {currentIndex === 1 && shouldShowAddPartner() && (
+                <AddModalButton
+                  field={{
+                    id: "addPartnerButton",
+                    label: "Add Partner",
+                    action: "openAddForm",
+                    isRepeater: true,
+                  }}
+                  formValues={formValues}
+                  setFormValues={setFormValues}
+                />
+              )}
+              <button
+                onClick={goNext}
+                disabled={!isCurrentSectionComplete()}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl shadow-lg transition disabled:opacity-50"
+              >
+                {currentIndex === formData.formSections.length - 1 ? 'Submit' : 'Next'}
+              </button>
+            </div>
           </div>
-
           <div className="mt-6 flex flex-col sm:flex-row gap-4 items-start">
-
             <button
               type="button"
               className="px-4 py-2 bg-indigo-600 text-white rounded"
-              onClick={() => setWillPreviewOpen(true)}
+              onClick={() => {
+                setWillPreviewOpen(true);
+                console.log('[Button] Preview Will clicked');
+              }}
             >
               Preview Will
             </button>
@@ -389,12 +473,10 @@ export default function FormRenderer() {
             <aside className="flex-1 bg-gray-100 border border-gray-300 p-4 rounded shadow-inner w-full">
               <h3 className="font-bold mb-2 text-gray-800">Clause Preview</h3>
               <div className="text-sm whitespace-pre-line text-gray-700">
-                {currentSection.fields.map(field => {
-                  const rendered = renderTemplate(field.willClauseText, previewValues);
-                  console.log(`[DEBUG] [ClausePreview] Field: ${field.id}, Template:`, field.willClauseText, "Rendered:", rendered);
+                {collectClauses(currentSection.fields, previewValues).map((rendered, idx) => {
                   if (!rendered || !rendered.trim()) return null;
                   return (
-                    <div key={field.id || `clause-${idx}`} className="mb-4">
+                    <div key={`clause-${idx}`} className="mb-4">
                       {rendered}
                     </div>
                   );

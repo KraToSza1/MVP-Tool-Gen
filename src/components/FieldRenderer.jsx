@@ -1,378 +1,223 @@
 import React, { useState, useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import UniversalModal from './UniversalModal';
+import ArrayFieldSection from './ArrayFieldSection';
 import { UserIcon } from "@heroicons/react/24/outline";
 
-const guardianFields = [
-  { id: "title", type: "text", label: "Title" },
-  { id: "firstName", type: "text", label: "First Name(s)", required: true },
-  { id: "middleNames", type: "text", label: "Middle Name(s)" },
-  { id: "lastName", type: "text", label: "Last Name", required: true },
-  { id: "knownAs", type: "text", label: "Known As" },
-  { id: "alias", type: "text", label: "Alias" },
-  { id: "dob", type: "date", label: "Date of Birth (dd/mm/yyyy)" },
-  { id: "gender", type: "radio", label: "Gender", options: [
-      { value: "Male", label: "Male" },
-      { value: "Other", label: "Other" },
-      { value: "Female", label: "Female" }
-    ]
-  },
-  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
-  { id: "tel2", type: "text", label: "Tel 2." },
-  { id: "email", type: "email", label: "Email" },
-  { id: "occupation", type: "text", label: "Occupation" },
-  { id: "address", type: "textarea", label: "Address" },
-  { id: "relationship", type: "text", label: "Relationship To Aristone" }
-];
-
-const substituteGuardianFields = [
-  { id: "title", type: "text", label: "Title" },
-  { id: "firstName", type: "text", label: "First Name(s)", required: true },
-  { id: "middleNames", type: "text", label: "Middle Name(s)" },
-  { id: "lastName", type: "text", label: "Last Name", required: true },
-  { id: "knownAs", type: "text", label: "Known As" },
-  { id: "alias", type: "text", label: "Alias" },
-  { id: "dob", type: "date", label: "Date of Birth (dd/mm/yyyy)" },
-  { id: "gender", type: "radio", label: "Gender", options: [
-      { value: "Male", label: "Male" },
-      { value: "Other", label: "Other" },
-      { value: "Female", label: "Female" }
-    ]
-  },
-  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
-  { id: "tel2", type: "text", label: "Tel 2." },
-  { id: "email", type: "email", label: "Email" },
-  { id: "occupation", type: "text", label: "Occupation" },
-  { id: "address", type: "textarea", label: "Address" },
-  { id: "relationship", type: "text", label: "Relationship To Aristone" }
-];
-
-const executorFields = [
-  { id: "title", type: "text", label: "Title" },
-  { id: "firstName", type: "text", label: "First Name(s)", required: true },
-  { id: "middleNames", type: "text", label: "Middle Name(s)" },
-  { id: "lastName", type: "text", label: "Last Name", required: true },
-  { id: "knownAs", type: "text", label: "Known As" },
-  { id: "alias", type: "text", label: "Alias" },
-  { id: "dob", type: "date", label: "Date of Birth (dd/mm/yyyy)" },
-  { id: "gender", type: "radio", label: "Gender", options: [
-      { value: "Male", label: "Male" },
-      { value: "Other", label: "Other" },
-      { value: "Female", label: "Female" }
-    ]
-  },
-  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
-  { id: "tel2", type: "text", label: "Tel 2." },
-  { id: "email", type: "email", label: "Email" },
-  { id: "occupation", type: "text", label: "Occupation" },
-  { id: "address", type: "textarea", label: "Address" },
-  { id: "relationship", type: "text", label: "Relationship" }
-];
-
-const substituteExecutorFields = [
-  { id: "title", type: "text", label: "Title" },
-  { id: "firstName", type: "text", label: "First Name(s)", required: true },
-  { id: "middleNames", type: "text", label: "Middle Name(s)" },
-  { id: "lastName", type: "text", label: "Last Name", required: true },
-  { id: "knownAs", type: "text", label: "Known As" },
-  { id: "alias", type: "text", label: "Alias" },
-  { id: "dob", type: "date", label: "Date of Birth (dd/mm/yyyy)" },
-  { id: "gender", type: "radio", label: "Gender", options: [
-      { value: "Male", label: "Male" },
-      { value: "Other", label: "Other" },
-      { value: "Female", label: "Female" }
-    ]
-  },
-  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
-  { id: "tel2", type: "text", label: "Tel 2." },
-  { id: "email", type: "email", label: "Email" },
-  { id: "occupation", type: "text", label: "Occupation" },
-  { id: "address", type: "textarea", label: "Address" },
-  { id: "relationship", type: "text", label: "Relationship" }
-];
-
-const trusteeFields = [
-  { id: "title", type: "text", label: "Title" },
-  { id: "firstName", type: "text", label: "First Name(s)", required: true },
-  { id: "middleNames", type: "text", label: "Middle Name(s)" },
-  { id: "lastName", type: "text", label: "Last Name", required: true },
-  { id: "knownAs", type: "text", label: "Known As" },
-  { id: "alias", type: "text", label: "Alias" },
-  { id: "dob", type: "date", label: "Date of Birth (dd/mm/yyyy)" },
-  { id: "gender", type: "radio", label: "Gender", options: [
-      { value: "Male", label: "Male" },
-      { value: "Other", label: "Other" },
-      { value: "Female", label: "Female" }
-    ]
-  },
-  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
-  { id: "tel2", type: "text", label: "Tel 2." },
-  { id: "email", type: "email", label: "Email" },
-  { id: "occupation", type: "text", label: "Occupation" },
-  { id: "address", type: "textarea", label: "Address" },
-  { id: "relationship", type: "text", label: "Relationship" }
-];
-
-const substituteTrusteeFields = [
-  { id: "title", type: "text", label: "Title" },
-  { id: "firstName", type: "text", label: "First Name(s)", required: true },
-  { id: "middleNames", type: "text", label: "Middle Name(s)" },
-  { id: "lastName", type: "text", label: "Last Name", required: true },
-  { id: "knownAs", type: "text", label: "Known As" },
-  { id: "alias", type: "text", label: "Alias" },
-  { id: "dob", type: "date", label: "Date of Birth (dd/mm/yyyy)" },
-  { id: "gender", type: "radio", label: "Gender", options: [
-      { value: "Male", label: "Male" },
-      { value: "Other", label: "Other" },
-      { value: "Female", label: "Female" }
-    ]
-  },
-  { id: "mobile", type: "tel", label: "Mobile", inputMode: "numeric", pattern: "^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$", maxLength: 15 },
-  { id: "tel2", type: "text", label: "Tel 2." },
-  { id: "email", type: "email", label: "Email" },
-  { id: "occupation", type: "text", label: "Occupation" },
-  { id: "address", type: "textarea", label: "Address" },
-  { id: "relationship", type: "text", label: "Relationship" }
-];
-
-// Map section id to fields and titles
-const sectionConfig = {
-  guardiansSection: {
-    fields: guardianFields,
-    title: "Add Guardian",
-    label: "Guardian",
-    emptyText: "No guardian has been specified."
-  },
-  substituteGuardiansSection: {
-    fields: substituteGuardianFields,
-    title: "Add Substitute Guardian",
-    label: "Substitute Guardian",
-    emptyText: "No substitute guardian has been specified."
-  },
-  executorsSection: {
-    fields: executorFields,
-    title: "Add Executor",
-    label: "Executor",
-    emptyText: "No executor has been specified."
-  },
-  substituteExecutorsSection: {
-    fields: substituteExecutorFields,
-    title: "Add Substitute Executor",
-    label: "Substitute Executor",
-    emptyText: "No substitute executor has been specified."
-  },
-  trusteesSection: {
-    fields: trusteeFields,
-    title: "Add Trustee",
-    label: "Trustee",
-    emptyText: "No trustee has been specified."
-  },
-  substituteTrusteesSection: {
-    fields: substituteTrusteeFields,
-    title: "Add Substitute Trustee",
-    label: "Substitute Trustee",
-    emptyText: "No substitute trustee has been specified."
-  }
-};
-
-function evaluateConditions(conditions, formValues) {
+// --- CONDITION LOGIC ---
+function evaluateConditions(conditions, formValues, logic = "AND") {
   if (!conditions) return true;
-  const evalClause = (clause) => {
-    if (clause.operator === 'AND' || clause.operator === 'OR') {
-      const results = clause.clauses.map(evalClause);
-      return clause.operator === 'AND' ? results.every(Boolean) : results.some(Boolean);
+    console.log("[COND DEBUG]", { conditions, formValues, logic });
+
+  if (Array.isArray(conditions)) {
+    // Use passed logic if present, else default to AND
+    const effectiveLogic = logic || "AND";
+    const results = conditions.map(cond =>
+      evaluateConditions(cond, formValues) // Each array element is usually an object; logic only applies at this level
+    );
+    return effectiveLogic === "AND"
+      ? results.every(Boolean)
+      : results.some(Boolean);
+  }
+
+  if (typeof conditions === "object" && conditions.operator) {
+    // Handle compound logic (AND/OR)
+    if (conditions.operator === "AND" || conditions.operator === "OR") {
+      const results = conditions.clauses.map(cond =>
+        evaluateConditions(cond, formValues)
+      );
+      return conditions.operator === "AND"
+        ? results.every(Boolean)
+        : results.some(Boolean);
     }
-    const value = formValues[clause.field];
-    if (clause.operator === 'eq') return value === clause.value;
-    if (clause.operator === 'neq') return value !== clause.value;
-    if (clause.operator === 'in') return Array.isArray(clause.value) ? clause.value.includes(value) : false;
+    // Leaf operators
+    const value = formValues[conditions.field];
+    if (conditions.operator === "eq") return value === conditions.value;
+    if (conditions.operator === "neq") return value !== conditions.value;
+    if (conditions.operator === "in") return Array.isArray(conditions.value)
+      ? conditions.value.includes(value)
+      : false;
     return false;
-  };
-  return Array.isArray(conditions)
-    ? conditions.every(evalClause)
-    : evalClause(conditions);
+  }
+  return false;
 }
 
-export default function FieldRenderer({ field, formValues, setFormValues }) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalFields, setModalFields] = useState([]);
-  const [modalSection, setModalSection] = useState("");
-  const [showInputs, setShowInputs] = useState({});
-  const sigCanvasRef = useRef({});
-
-  // --- Section modal handler ---
-  if (sectionConfig[field.id]) {
-    const section = sectionConfig[field.id];
-    const entries = Array.isArray(formValues[field.id]) ? formValues[field.id] : [];
-
-    // Debug: Section rendering
-
-    return (
-      <div className="mb-6 bg-white rounded-xl shadow p-6 border border-gray-100 transition-all duration-300 hover:shadow-lg">
-        <h2 className="flex items-center gap-2 text-xl font-bold mb-4">
-          <UserIcon className="w-6 h-6 text-indigo-500" />
-          {section.label}
-        </h2>
-        {entries.length === 0 && (
-          <div className="bg-blue-100 text-blue-900 rounded p-3 my-2 text-sm">
-            {section.emptyText}
-          </div>
-        )}
-        {entries.map((g, idx) => (
-          <div key={g.id || idx} className="mb-2">
-            {section.fields.map(f => (
-              <span key={`${f.id}-${g.id || idx}`} className="mr-2">{g[f.id]}</span>
-            ))}
-            <button
-              type="button"
-              className="text-red-600 text-xs px-2 py-1 rounded hover:bg-red-100 ml-2"
-              onClick={() => {
-                const updated = entries.filter((_, i) => i !== idx);
-                setFormValues(prev => ({
-                  ...prev,
-                  [field.id]: updated,
-                }));
-              }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow transition transform hover:scale-105 focus:ring-2 focus:ring-indigo-400"
-          onClick={() => {
-            setModalFields(section.fields);
-            setModalSection(field.id);
-            setModalOpen(true);
-          }}
-        >
-          Add {section.label}
-        </button>
-        <UniversalModal
-          show={modalOpen && modalSection === field.id}
-          onClose={() => {
-            setModalOpen(false);
-          }}
-          onSave={entry => {
-            setFormValues(prev => ({
-              ...prev,
-              [field.id]: [...entries, { ...entry, id: Date.now().toString() }]
-            }));
-            setModalOpen(false);
-          }}
-          fields={modalFields}
-          title={section.title}
-        />
-      </div>
-    );
+// --- UNIVERSAL BUTTON/MODAL ADD HANDLER ---
+function AddModalButton({ field, parentSection, formValues, setFormValues }) {
+  // Debug logs for tracing button/modals
+  console.log('[AddModalButton] field:', field);
+  console.log('[AddModalButton] parentSection:', parentSection);
+  if (parentSection) {
+    console.log('[AddModalButton] parentSection.subFields:', parentSection.subFields);
   }
+  // Find modalFields sibling in the parentSection
+  let modalFields = null;
+  let modalTitle = field.label || 'Add Entry';
+  if (parentSection && Array.isArray(parentSection.subFields)) {
+    // Looks for sibling whose type is modalFields and has a similar id
+    const siblingModal = parentSection.subFields.find(
+      f => f.type === 'modalFields' &&
+        (
+          f.id === field.id.replace('Button', 'ModalFields') ||
+          f.id.toLowerCase().includes(field.id.replace('Button', '').replace('add', '').toLowerCase())
+        )
+    );
+    if (siblingModal) {
+      modalFields = siblingModal.fields;
+      if (siblingModal.label) modalTitle = siblingModal.label;
+    }
+  }
+  console.log('[AddModalButton] modalFields found:', modalFields);
 
-  // --- Inline single-value add button (legacy support) ---
-  if (field.type === 'button' && field.action === 'openAddForm') {
-    const targetFieldId = field.id.replace('add', '').replace('Button', 'Data');
-    return (
-      <div className="mb-6">
+  const [showModal, setShowModal] = useState(false);
+
+  // Compute where to save modal data in formValues, e.g. guardianData, partnerData, etc
+  const targetFieldId = (() => {
+    if (field.id.startsWith('add')) return field.id.replace('add', '').replace('Button', 'Data');
+    return field.id.replace('Button', 'Data');
+  })();
+  const addedEntry = formValues[targetFieldId];
+
+  return (
+    <>
+      <div className="mb-2 flex items-center gap-3">
         <button
           type="button"
-          onClick={() =>
-            setShowInputs((prev) => ({ ...prev, [targetFieldId]: true }))
-          }
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow"
+          onClick={() => {
+            console.log('[AddModalButton] Button clicked! Setting showModal = true');
+            setShowModal(true);
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow flex items-center gap-2"
         >
+          <UserIcon className="h-5 w-5 text-white" aria-hidden="true" />
           {field.label}
         </button>
-        {showInputs[targetFieldId] && (
-          <input
-            type="text"
-            className="mt-3 w-full px-4 py-2 border rounded shadow-sm bg-white text-gray-800"
-            placeholder={`Enter ${targetFieldId.replace(/([A-Z])/g, ' $1')}`}
-            value={formValues[targetFieldId] || ''}
-            onChange={(e) =>
-              setFormValues((prev) => ({
-                ...prev,
-                [targetFieldId]: e.target.value,
-              }))
-            }
-          />
+        {addedEntry && (
+          <span className="text-green-700 font-semibold">
+            Entry Added
+          </span>
         )}
+      </div>
+      {modalFields && showModal && (
+        <UniversalModal
+          show={showModal}
+          title={modalTitle}
+          fields={modalFields}
+          initialValues={addedEntry || {}}
+          onSave={data => {
+            setFormValues(prev => ({
+              ...prev,
+              [targetFieldId]: data,
+            }));
+            setShowModal(false);
+            console.log('[AddModalButton] Modal saved, data:', data);
+          }}
+          onClose={() => {
+            setShowModal(false);
+            console.log('[AddModalButton] Modal closed without saving');
+          }}
+        />
+      )}
+      {/* Extra: show a warning if modalFields is NOT found */}
+      {!modalFields && (
+        <div className="text-red-500 text-xs mb-2">No modal fields found for this Add button! Check your form JSON structure.</div>
+      )}
+    </>
+  );
+}
+
+// --- MAIN FIELD RENDERER ---
+export default function FieldRenderer({ field, formValues, setFormValues, parentSection }) {
+  // All hooks must be at the top (no conditions!)
+  const sigCanvasRef = useRef({});
+  const [showInputs, setShowInputs] = useState({});
+
+  // --- DEBUG: Field Render ---
+  console.log(`[FieldRenderer] Rendering field: ${field.id}, type: ${field.type}`, field);
+
+  // --- CONDITIONS ---
+  if (field.conditions && !evaluateConditions(field.conditions, formValues)) {
+    return null;
+  }
+
+    // --- Display field (info only, no input) ---
+  if (field.type === 'display') {
+    return (
+      <div className="mb-4 text-indigo-700 font-semibold text-sm">
+        {field.label || field.value || ''}
       </div>
     );
   }
 
-  // --- Standard text/number field ---
-  if (field.type === 'text' || field.type === 'number') {
-    // Mobile number
-    if (field.id === 'mobile' || field.id === 'tel2') {
-      return (
-        <div className="mb-6">
-          <label className="block font-semibold text-gray-800 mb-1">
-            {field.label}
-            {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
-          </label>
-          <input
-            type="tel"
-            inputMode="numeric"
-            pattern="^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$"
-            maxLength={15}
-            value={formValues[field.id] || ''}
-            onChange={e => setFormValues({ [field.id]: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
-          />
-        </div>
-      );
-    }
-    // Postcode
-    if (field.id === 'postcode') {
-      return (
-        <div className="mb-6">
-          <label className="block font-semibold text-gray-800 mb-1">
-            {field.label}
-            {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
-          </label>
-          <input
-            type="text"
-            inputMode="text"
-            pattern="^[A-Z]{1,2}\\d[A-Z\\d]? ?\\d[A-Z]{2}$"
-            autoCapitalize="characters"
-            maxLength={8}
-            value={formValues[field.id] || ''}
-            onChange={e => setFormValues({ [field.id]: e.target.value.toUpperCase() })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
-          />
-        </div>
-      );
-    }
-    // Email
-    if (field.type === 'email' || field.id === 'email') {
-      return (
-        <div className="mb-6">
-          <label className="block font-semibold text-gray-800 mb-1">
-            {field.label}
-            {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
-          </label>
-          <input
-            type="email"
-            value={formValues[field.id] || ''}
-            onChange={e => setFormValues({ [field.id]: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
-            required
-          />
-        </div>
-      );
-    }
-    // Default text/number
+  // --- Hidden field (used for internal/calculation fields, not shown) ---
+  if (field.type === 'hidden') {
+    return null;
+  }
+
+  // --- ARRAY/REPEATER FIELD ---
+if (field.type === "array" && Array.isArray(field.subFields)) {
+   console.log("[DEBUG] Rendering ARRAY field:", field.id, "Current formValues:", formValues);
+    return (
+      <RepeaterField
+        field={field}
+        value={formValues[field.id] || []}
+        onChange={arr => setFormValues(prev => ({
+          ...prev,
+          [field.id]: arr
+        }))}
+      />
+    );
+  }
+
+  // --- UNIVERSAL ADD BUTTON (covers all: partner, guardian, trustee, etc) ---
+  if (field.type === 'button' && field.action === 'openAddForm') {
+    // Debug all add buttons
+    console.log(`[FieldRenderer] Showing AddModalButton for: ${field.id}`);
+    console.log('[FieldRenderer] Rendering button field:', field.id, field);
+
+    return (
+      <AddModalButton
+        field={field}
+        parentSection={parentSection}
+        formValues={formValues}
+        setFormValues={setFormValues}
+      />
+    );
+  }
+
+  // --- Standard Fields ---
+  if (
+    field.type === 'text' ||
+    field.type === 'number' ||
+    field.type === 'email'
+  ) {
+    let inputType = field.type;
+    if (field.id.toLowerCase().includes('email')) inputType = 'email';
+    if (field.id.toLowerCase().includes('mobile') || field.id.toLowerCase().includes('tel')) inputType = 'tel';
+
     return (
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-1">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         <input
-          type={field.type}
+          type={inputType}
+          inputMode={inputType === 'tel' ? 'numeric' : undefined}
+          maxLength={field.id === 'postcode' ? 8 : field.maxLength || undefined}
+          pattern={field.pattern || undefined}
           value={formValues[field.id] || ''}
-          onChange={e => setFormValues({ [field.id]: e.target.value })}
+          onChange={e => {
+            const newValue = field.id === 'postcode'
+              ? e.target.value.toUpperCase()
+              : e.target.value;
+            setFormValues(prev => ({
+              ...prev,
+              [field.id]: newValue,
+            }));
+          }}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
+          required={field.required}
         />
       </div>
     );
@@ -384,7 +229,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-1">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         {field.infoText && (
           <p className="text-xs text-gray-500 mb-1 italic">{field.infoText}</p>
@@ -394,7 +239,13 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
           placeholder={field.placeholder || ''}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
           value={formValues[field.id] || ''}
-          onChange={e => setFormValues({ [field.id]: e.target.value })}
+          onChange={e =>
+            setFormValues(prev => ({
+              ...prev,
+              [field.id]: e.target.value,
+            }))
+          }
+          required={field.required}
         />
       </div>
     );
@@ -402,14 +253,11 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
 
   // --- Radio field ---
   if (field.type === 'radio' && field.options) {
-    const selectedOption = field.options.find(
-      (opt) => opt.value === formValues[field.id]
-    );
     return (
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-1">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         {field.infoText && (
           <p className="text-xs text-gray-500 mb-1 italic">{field.infoText}</p>
@@ -423,22 +271,17 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
                 value={opt.value}
                 className="accent-indigo-600"
                 checked={formValues[field.id] === opt.value}
-                onChange={(e) =>
-                  setFormValues((prev) => ({
+                onChange={e => {
+                  setFormValues(prev => ({
                     ...prev,
                     [field.id]: e.target.value,
-                  }))
-                }
+                  }));
+                }}
               />
               <span className="text-gray-800">{opt.label}</span>
             </label>
           ))}
         </div>
-        {selectedOption?.willClauseText && (
-          <div className="mt-3 p-3 bg-indigo-100 text-indigo-900 rounded text-sm shadow-inner">
-            {selectedOption.willClauseText}
-          </div>
-        )}
       </div>
     );
   }
@@ -449,7 +292,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-1">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         {field.infoText && (
           <p className="text-xs text-gray-500 mb-1 italic">{field.infoText}</p>
@@ -465,7 +308,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
                     ? formValues[field.id].includes(opt.value)
                     : false
                 }
-                onChange={(e) => {
+                onChange={e => {
                   const newValue = Array.isArray(formValues[field.id])
                     ? [...formValues[field.id]]
                     : [];
@@ -475,13 +318,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
                     const index = newValue.indexOf(opt.value);
                     if (index > -1) newValue.splice(index, 1);
                   }
-                  console.log(
-                    `[CheckboxGroup] Field: ${field.id}, Option: ${opt.value}, Checked: ${e.target.checked}, Before:`,
-                    formValues[field.id],
-                    "After:",
-                    newValue
-                  );
-                  setFormValues((prev) => ({
+                  setFormValues(prev => ({
                     ...prev,
                     [field.id]: newValue,
                   }));
@@ -504,10 +341,10 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
           <SignatureCanvas
             penColor="black"
             canvasProps={{ width: 500, height: 100, className: 'sigCanvas w-full h-24' }}
-            ref={(ref) => (sigCanvasRef.current[field.id] = ref)}
+            ref={ref => (sigCanvasRef.current[field.id] = ref)}
             onEnd={() => {
               const dataUrl = sigCanvasRef.current[field.id]?.getTrimmedCanvas()?.toDataURL('image/png');
-              setFormValues((prev) => ({
+              setFormValues(prev => ({
                 ...prev,
                 [field.id]: dataUrl,
               }));
@@ -518,7 +355,7 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
           type="button"
           onClick={() => {
             sigCanvasRef.current[field.id]?.clear();
-            setFormValues((prev) => ({
+            setFormValues(prev => ({
               ...prev,
               [field.id]: '',
             }));
@@ -538,14 +375,16 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
   if (field.type === 'date') {
     return (
       <div className="mb-6">
-        <label className="block font-medium text-gray-700 dark:text-gray-200 mb-1">
+        <label className="block font-semibold text-gray-800 mb-1">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1" title="Required">*</span>}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
-        {field.infoText && <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 italic">{field.infoText}</div>}
+        {field.infoText && (
+          <div className="text-xs text-gray-500 mb-1 italic">{field.infoText}</div>
+        )}
         <input
           type="date"
-          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-300"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900"
           value={formValues[field.id] || ''}
           onChange={e => {
             setFormValues(prev => ({ ...prev, [field.id]: e.target.value }));
@@ -564,15 +403,18 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
           type="number"
           min={0}
           value={formValues[field.id] || ''}
-          onChange={e => setFormValues({ [field.id]: e.target.value })}
+          onChange={e =>
+            setFormValues(prev => ({ ...prev, [field.id]: e.target.value }))
+          }
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
         />
       </div>
     );
   }
 
-  // --- Section field ---
+  // --- Section field (groups of subfields) ---
   if (field.type === 'section' && Array.isArray(field.subFields)) {
+    console.log(`[FieldRenderer] Rendering section: ${field.id}, Subfields:`, field.subFields.map(f => f.id));
     return (
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-2">{field.label}</label>
@@ -581,16 +423,9 @@ export default function FieldRenderer({ field, formValues, setFormValues }) {
             <FieldRenderer
               key={subField.id}
               field={subField}
-              formValues={formValues[field.id] || {}} // This is correct
-              setFormValues={subValue => {
-                setFormValues(prev => ({
-                  ...prev,
-                  [field.id]: {
-                    ...(prev[field.id] || {}),
-                    ...subValue
-                  }
-                }));
-              }}
+              formValues={formValues}
+              setFormValues={setFormValues}
+              parentSection={field}
             />
           ))}
         </div>
