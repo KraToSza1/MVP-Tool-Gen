@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import UniversalModal from "./UniversalModal";
+import SelectableEntryModal from "./SelectableEntryModal";
 
 export default function ArrayFieldSection({ field, values = [], setValues }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -64,17 +64,19 @@ export default function ArrayFieldSection({ field, values = [], setValues }) {
       >
         Add {field.label || "Entry"}
       </button>
-      <UniversalModal
-        show={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={entry => {
-          if (!setValues) return;
-          setValues([...(values || []), { ...entry, id: Date.now().toString() }]);
-          setModalOpen(false);
-        }}
-        fields={entryFields}
-        title={field.title || `Add ${field.label || "Entry"}`}
-      />
+      <SelectableEntryModal
+  show={modalOpen}
+  onClose={() => setModalOpen(false)}
+  onSave={entry => {
+    if (!setValues) return;
+    setValues([...(values || []), { ...entry, id: entry.id || Date.now().toString() }]);
+    setModalOpen(false);
+  }}
+  fields={entryFields}
+  title={field.title || `Add ${field.label || "Entry"}`}
+  storageKey={field.storageKey || field.id || field.label?.toLowerCase() || "people"}
+/>
+
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { UserIcon } from "@heroicons/react/24/outline";
 
-// Pass: show, onClose, onSave, fields, title (and optionally: initialValues)
+// Add prop: existingPeople = [] (optional), to support dropdown
 export default function UniversalModal({
   show,
   onClose,
@@ -10,17 +10,19 @@ export default function UniversalModal({
   fields,
   title,
   initialValues = {},
+  existingPeople = [], // 👈
 }) {
   const [form, setForm] = useState(initialValues || {});
   const [errors, setErrors] = useState({});
-  const sigRefs = useRef({}); // For handling multiple signature fields
+  const [selectedPersonIdx, setSelectedPersonIdx] = useState(""); // 👈
+  const sigRefs = useRef({});
 
-  // Restore values and errors when opened
+  // Only reset form when modal is opened!
   useEffect(() => {
     if (show) {
       setForm(initialValues || {});
       setErrors({});
-      // Restore signatures to canvas if value is present
+      setSelectedPersonIdx(""); // 👈 reset dropdown on open
       setTimeout(() => {
         fields.forEach((field) => {
           if (
@@ -33,7 +35,36 @@ export default function UniversalModal({
         });
       }, 100);
     }
-  }, [show, initialValues, fields]);
+  }, [show]); // ✅
+
+  // Dropdown: autofill form when user selects an existing person
+  useEffect(() => {
+    if (
+      selectedPersonIdx !== "" &&
+      existingPeople &&
+      existingPeople.length > 0 &&
+      !isNaN(selectedPersonIdx)
+    ) {
+      const found = existingPeople[selectedPersonIdx];
+      if (found) {
+        setForm(found);
+        setTimeout(() => {
+          fields.forEach((field) => {
+            if (
+              field.type === "signature" &&
+              found[field.id] &&
+              sigRefs.current[field.id]
+            ) {
+              sigRefs.current[field.id].fromDataURL(found[field.id]);
+            }
+          });
+        }, 100);
+      }
+    } else if (selectedPersonIdx === "") {
+      setForm(initialValues || {});
+    }
+    // eslint-disable-next-line
+  }, [selectedPersonIdx]); // 👈 only depends on dropdown
 
   if (!show) return null;
 
@@ -46,16 +77,11 @@ export default function UniversalModal({
     const newErrors = {};
     fields.forEach((field) => {
       if (field.required) {
-        // Signature: check for presence of signature
         if (field.type === "signature") {
           if (!form[field.id] || form[field.id] === "") newErrors[field.id] = "Required";
-        }
-        // CheckboxGroup: must have at least one selected
-        else if (field.type === "checkboxGroup") {
+        } else if (field.type === "checkboxGroup") {
           if (!Array.isArray(form[field.id]) || form[field.id].length === 0) newErrors[field.id] = "Required";
-        }
-        // Others: value must not be empty
-        else if (!form[field.id] || form[field.id] === "") {
+        } else if (!form[field.id] || form[field.id] === "") {
           newErrors[field.id] = "Required";
         }
       }
@@ -168,6 +194,30 @@ export default function UniversalModal({
           <UserIcon className="w-8 h-8 text-indigo-600" />
           <h2 className="text-xl font-bold">{title || "Add Entry"}</h2>
         </div>
+        {/* Dropdown for existing people (if provided) */}
+        {existingPeople && existingPeople.length > 0 && (
+          <div className="mb-4">
+            <label className="block font-semibold text-gray-800 mb-1">
+              Select Existing Person
+            </label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={selectedPersonIdx}
+              onChange={e => setSelectedPersonIdx(e.target.value)}
+            >
+              <option value="">Add New</option>
+              {existingPeople.map((person, idx) => (
+                <option key={idx} value={idx}>
+                  {(person.fullName ||
+                    `${person.firstName || ""} ${person.lastName || ""}`.trim() ||
+                    person.knownAs ||
+                    person.email ||
+                    `Entry #${idx}`).trim()}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         {fields.map((field, idx) => (
           <div key={field.id || `field-${idx}`} className="mb-4">
             <label className="block font-semibold text-gray-800 mb-1">
