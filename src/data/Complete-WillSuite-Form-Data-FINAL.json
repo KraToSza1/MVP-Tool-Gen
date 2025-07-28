@@ -1438,7 +1438,7 @@
                   "id": "professionalExecutorOtherDetails",
                   "type": "text",
                   "label": "If 'Other', please specify the company and/or individual",
-                  "required": true,
+                  "required": false,
                   "conditions": [
                     {
                       "field": "professionalExecutorType",
@@ -1510,7 +1510,7 @@
                   "id": "substituteProfessionalExecutorOtherDetails",
                   "type": "text",
                   "label": "If 'Other', please specify the company and/or individual",
-                  "required": true,
+                  "required": false,
                   "conditions": [
                     {
                       "field": "substituteProfessionalExecutorType",

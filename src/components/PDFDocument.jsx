@@ -187,10 +187,12 @@ const styles = StyleSheet.create({
 // UTILS
 function getFullName(item) {
   if (!item) return "[Name]";
-  return [
-    item.title, item.firstName, item.middleName, item.lastName, item.fullName
-  ].filter(Boolean).join(" ") || "[Name]";
+  if (item.fullName) return item.fullName;
+  return [item.title, item.firstName, item.middleName, item.lastName]
+    .filter(Boolean)
+    .join(" ");
 }
+
 
 const PDFDocument = ({ formValues = {} }) => {
   return (
@@ -222,7 +224,6 @@ const PDFDocument = ({ formValues = {} }) => {
             </Text>
           </View>
 
-          {/* --- Now your clauses as in screenshot --- */}
           <View style={styles.section}>
             <Text style={styles.clause}><Text style={styles.clauseNum}>1. Revoking Previous Wills</Text></Text>
             <Text style={styles.clause}>
@@ -238,7 +239,13 @@ const PDFDocument = ({ formValues = {} }) => {
           <View style={styles.section}>
             <Text style={styles.clause}><Text style={styles.clauseNum}>3. Appointment of Executors and Trustees</Text></Text>
             <Text style={styles.clause}>
-              3.1. I appoint <Text style={{ fontFamily: 'Times-Bold' }}>{formValues.executorName || "Mr John Smith"}</Text> to be my sole Executor and Trustee.
+              3.1. I appoint{" "}
+              <Text style={{ fontFamily: 'Times-Bold' }}>
+                {formValues.executorData?.length > 0
+                  ? getFullName(formValues.executorData[0])
+                  : "Mr John Smith"}
+              </Text>{" "}
+              to be my sole Executor and Trustee.
             </Text>
             <Text style={styles.clause}>
               3.2. In the rest of this Will, 'Trustees' means my Executors and the Trustees of any trust created under this Will, either appointed by me in this Will or appointed later under the terms of a trust.
@@ -274,6 +281,84 @@ const PDFDocument = ({ formValues = {} }) => {
               This is the last clause of my Will and is only followed by the attestation statement.
             </Text>
           </View>
+
+          {/* ----- DYNAMIC FORM-DATA INSERTIONS ----- */}
+
+          {formValues.guardianData?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>8. Appointment of Guardians</Text></Text>
+              <Text style={styles.clause}>
+                I appoint {formValues.guardianData.map(g => getFullName(g)).join(", ")} as guardian{formValues.guardianData.length > 1 ? "s" : ""} of my minor children.
+              </Text>
+            </View>
+          )}
+
+          {formValues.executorData?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>9. Executors</Text></Text>
+              <Text style={styles.clause}>
+                The following persons shall act as my Executors: {formValues.executorData.map(e => getFullName(e)).join(", ")}.
+              </Text>
+            </View>
+          )}
+
+          {formValues.trusteeData?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>10. Trustees</Text></Text>
+              <Text style={styles.clause}>
+                I appoint the following as Trustees of my Will: {formValues.trusteeData.map(t => getFullName(t)).join(", ")}.
+              </Text>
+            </View>
+          )}
+
+          {formValues.legacyData?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>11. Gifts and Legacies</Text></Text>
+              {formValues.legacyData.map((gift, i) => (
+                <Text key={i} style={styles.clause}>
+                  I give {gift.description} to {gift.beneficiaryName || "[Beneficiary]"}.
+                </Text>
+              ))}
+            </View>
+          )}
+
+          {formValues.funeralWishes && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>12. Funeral Wishes</Text></Text>
+              <Text style={styles.clause}>
+                {formValues.funeralWishes}
+              </Text>
+            </View>
+          )}
+
+          {formValues.digitalExecutorData?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>13. Digital Executor</Text></Text>
+              <Text style={styles.clause}>
+                I appoint {formValues.digitalExecutorData.map(d => getFullName(d)).join(", ")} to manage my digital assets and accounts.
+              </Text>
+            </View>
+          )}
+
+          {formValues.professionalExecutorData?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>14. Professional Executor</Text></Text>
+              {formValues.professionalExecutorData.map((p, i) => (
+                <Text key={i} style={styles.clause}>
+                  I appoint {p.professionalExecutorType === "Other" ? p.customFirmName : p.professionalExecutorType} as Professional Executor.
+                </Text>
+              ))}
+            </View>
+          )}
+
+          {formValues.residueData && formValues.residueData.beneficiaries?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.clause}><Text style={styles.clauseNum}>15. Residue of Estate</Text></Text>
+              <Text style={styles.clause}>
+                I leave the residue of my estate to: {formValues.residueData.beneficiaries.map(b => getFullName(b)).join(", ")}.
+              </Text>
+            </View>
+          )}
         </View>
         <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber}/${totalPages}`} fixed />
       </Page>
@@ -286,7 +371,7 @@ const PDFDocument = ({ formValues = {} }) => {
             <Text style={styles.clause}>
               Signed by my <Text style={{ fontFamily: 'Times-Bold' }}>{getFullName(formValues)}</Text>, to give effect to this Will, on
             </Text>
-            <Text style={{ marginTop: 15, marginLeft: 25 }}>Date</Text>
+            <Text style={{ marginTop: 15, marginLeft: 25 }}>{formValues.signatureDate || "Date"}</Text>
             <View style={styles.line} />
             <Text style={styles.signatureLabel}>SIGNATURE</Text>
             {formValues.testatorSignature ? (

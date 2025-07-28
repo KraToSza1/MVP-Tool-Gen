@@ -1,6 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
+console.log("Current working directory:", process.cwd());
+console.log("Script directory (__dirname):", __dirname);
+
+console.log("Files in current directory:");
+console.log(fs.readdirSync(__dirname));
+
+
+
 // These are correct!
 const filePath = path.join(__dirname, 'Complete-WillSuite-Form-Data-FINAL.json');
 const outputPath = path.join(__dirname, 'Complete-WillSuite-Form-Data-FINAL-patched.json');
