@@ -3,6 +3,7 @@ import SignatureCanvas from 'react-signature-canvas';
 import UniversalModal from './UniversalModal';
 import ArrayFieldSection from './ArrayFieldSection';
 import { UserIcon } from "@heroicons/react/24/outline";
+import { getAutofillOptions } from '../utils/autofillUtils';
 
 // --- CONDITION LOGIC ---
 function evaluateConditions(conditions, formValues, logic = "AND") {
@@ -195,6 +196,9 @@ if (field.type === "array" && Array.isArray(field.subFields)) {
     if (field.id.toLowerCase().includes('email')) inputType = 'email';
     if (field.id.toLowerCase().includes('mobile') || field.id.toLowerCase().includes('tel')) inputType = 'tel';
 
+    const shouldUseAutofill = field.useAutofill === true;
+    const autofillOptions = shouldUseAutofill ? getAutofillOptions(field, formValues) : [];
+
     return (
       <div className="mb-6">
         <label className="block font-semibold text-gray-800 mb-1">
@@ -203,6 +207,7 @@ if (field.type === "array" && Array.isArray(field.subFields)) {
         </label>
         <input
           type={inputType}
+          list={shouldUseAutofill ? `${field.id}-autofill-list` : undefined}
           inputMode={inputType === 'tel' ? 'numeric' : undefined}
           maxLength={field.id === 'postcode' ? 8 : field.maxLength || undefined}
           pattern={field.pattern || undefined}
@@ -219,6 +224,13 @@ if (field.type === "array" && Array.isArray(field.subFields)) {
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
           required={field.required}
         />
+        {shouldUseAutofill && (
+          <datalist id={`${field.id}-autofill-list`}>
+            {autofillOptions.map((option, idx) => (
+              <option key={`${field.id}-opt-${idx}`} value={option} />
+            ))}
+          </datalist>
+        )}
       </div>
     );
   }

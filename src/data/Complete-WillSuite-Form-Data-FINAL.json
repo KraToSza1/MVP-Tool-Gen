@@ -64,14 +64,16 @@
           "label": "First Name(s)",
           "value": "",
           "required": true,
-          "willClauseText": "The Testator's first name is {{field:firstName}}."
+          "willClauseText": "The Testator's first name is {{field:firstName}}.",
+          "useAutofill": true
         },
         {
           "id": "middleName",
           "type": "text",
           "label": "Middle Name(s)",
           "value": "",
-          "willClauseText": "The Testator's middle name is {{field:middleName}}."
+          "willClauseText": "The Testator's middle name is {{field:middleName}}.",
+          "useAutofill": true
         },
         {
           "id": "lastName",
@@ -79,7 +81,8 @@
           "label": "Last Name",
           "value": "",
           "required": true,
-          "willClauseText": "The Testator's last name is {{field:lastName}}."
+          "willClauseText": "The Testator's last name is {{field:lastName}}.",
+          "useAutofill": true
         },
         {
           "id": "knownAs",
@@ -87,7 +90,8 @@
           "label": "Known As",
           "infoText": "Any name the Testator is commonly known by, if different from their legal name",
           "value": "",
-          "willClauseText": "The Testator is also known as {{field:knownAs}}."
+          "willClauseText": "The Testator is also known as {{field:knownAs}}.",
+          "useAutofill": true
         },
         {
           "id": "alias",
@@ -95,7 +99,8 @@
           "label": "Alias",
           "infoText": "Any other name the Testator uses or is known by",
           "value": "",
-          "willClauseText": "The Testator uses the alias {{field:alias}}."
+          "willClauseText": "The Testator uses the alias {{field:alias}}.",
+          "useAutofill": true
         },
         {
           "id": "dateOfBirth",
@@ -136,7 +141,8 @@
           "required": true,
           "placeholder": "Mobile phone number",
           "value": "",
-          "willClauseText": "The Testator's mobile number is {{field:mobile}}."
+          "willClauseText": "The Testator's mobile number is {{field:mobile}}.",
+          "useAutofill": true
         },
         {
           "id": "tel2",
@@ -144,7 +150,8 @@
           "label": "Tel 2",
           "placeholder": "Alternative phone number",
           "value": "",
-          "willClauseText": "The Testator's alternative phone number is {{field:tel2}}."
+          "willClauseText": "The Testator's alternative phone number is {{field:tel2}}.",
+          "useAutofill": true
         },
         {
           "id": "email",
@@ -153,14 +160,16 @@
           "required": true,
           "placeholder": "email@example.com",
           "value": "",
-          "willClauseText": "The Testator's email address is {{field:email}}."
+          "willClauseText": "The Testator's email address is {{field:email}}.",
+          "useAutofill": true
         },
         {
           "id": "occupation",
           "type": "text",
           "label": "Occupation",
           "value": "",
-          "willClauseText": "The Testator's occupation is {{field:occupation}}."
+          "willClauseText": "The Testator's occupation is {{field:occupation}}.",
+          "useAutofill": true
         },
         {
           "id": "personalinformationAddress",
@@ -174,7 +183,8 @@
               "value": "",
               "required": true,
               "pattern": "^[A-Za-z0-9 ]{3,8}$",
-              "willClauseText": "The Testator's address postcode is {{field:address:postcode}}."
+              "willClauseText": "The Testator's address postcode is {{field:address:postcode}}.",
+              "useAutofill": true
             },
             {
               "id": "personalinformationAddressAddress1",
@@ -182,7 +192,8 @@
               "label": "Address 1",
               "value": "",
               "required": true,
-              "willClauseText": "The Testator's address line 1 is {{field:address:address1}}."
+              "willClauseText": "The Testator's address line 1 is {{field:address:address1}}.",
+              "useAutofill": true
             },
             {
               "id": "personalinformationAddressAddress2",
@@ -190,7 +201,8 @@
               "label": "Address 2",
               "value": "",
               "willClauseText": "The Testator's address line 2 is {{field:address:address2}}.",
-              "required": false
+              "required": false,
+              "useAutofill": true
             },
             {
               "id": "personalinformationAddressAddress3",
@@ -198,7 +210,8 @@
               "label": "Address 3",
               "value": "",
               "willClauseText": "The Testator's address line 3 is {{field:address:address3}}.",
-              "required": false
+              "required": false,
+              "useAutofill": true
             }
           ],
           "value": ""
@@ -548,7 +561,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "useAutofill": true
         }
       ]
     },
@@ -595,7 +609,8 @@
               "id": "guardianStatusDisplay",
               "type": "display",
               "text": "No guardian has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addGuardianButton",
@@ -795,7 +810,8 @@
               "id": "substituteGuardianStatusDisplay",
               "type": "display",
               "text": "No substitute guardian has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addSubstituteGuardianButton",
@@ -994,7 +1010,8 @@
               "id": "executorStatusDisplay",
               "type": "display",
               "text": "No executor has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addExecutorButton",
@@ -1187,7 +1204,8 @@
               "id": "substituteExecutorStatusDisplay",
               "type": "display",
               "text": "No substitute executor has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addSubstituteExecutorButton",
@@ -1404,7 +1422,8 @@
               "id": "professionalExecutorStatusDisplay",
               "type": "display",
               "text": "No professional executor has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addProfessionalExecutorButton",
@@ -1476,7 +1495,8 @@
               "id": "substituteProfessionalExecutorStatusDisplay",
               "type": "display",
               "text": "No substitute professional executor has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addSubstituteProfessionalExecutorButton",
@@ -1612,7 +1632,8 @@
               "id": "digitalExecutorStatusDisplay",
               "type": "display",
               "text": "No digital executor has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addDigitalExecutorButton",
@@ -1828,7 +1849,8 @@
               "id": "trusteeStatusDisplay",
               "type": "display",
               "text": "No trustee has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addTrusteeButton",
@@ -2028,7 +2050,8 @@
               "id": "substituteTrusteeStatusDisplay",
               "type": "display",
               "text": "No substitute trustee has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addSubstituteTrusteeButton",
@@ -2261,7 +2284,8 @@
               "id": "professionalTrusteeStatusDisplay",
               "type": "display",
               "text": "No professional trustee has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addProfessionalTrusteeButton",
@@ -2471,7 +2495,8 @@
               "id": "substituteProfessionalTrusteeStatusDisplay",
               "type": "display",
               "text": "No substitute professional trustee has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addSubstituteProfessionalTrusteeButton",
@@ -2785,7 +2810,8 @@
               "operator": "eq",
               "value": "YesButOnly"
             }
-          ]
+          ],
+          "useAutofill": true
         },
         {
           "id": "specificOrgansToExclude",
@@ -2799,7 +2825,8 @@
               "operator": "eq",
               "value": "YesAllExcept"
             }
-          ]
+          ],
+          "useAutofill": true
         },
         {
           "id": "organPurposeGroup",
@@ -3006,7 +3033,8 @@
               "id": "separateTrusteeStatusDisplay",
               "type": "display",
               "text": "No separate trustee has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addSeparateTrusteeButton",
@@ -3248,7 +3276,8 @@
               "type": "text",
               "label": "Schedule Number",
               "placeholder": "Enter the schedule number (e.g., '2')",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "bprTrustTerms",
@@ -3508,7 +3537,8 @@
               "type": "text",
               "label": "Schedule Number",
               "placeholder": "Enter the schedule number (e.g., '1')",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "propertyTrustTerms",
@@ -3851,7 +3881,8 @@
               "id": "excludedPersonStatusDisplay",
               "type": "display",
               "text": "No excluded person has been specified.",
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "addExcludedPersonButton",
@@ -4972,7 +5003,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "useAutofill": true
         },
         {
           "id": "stepProvisionsToExcludeMultiple",
@@ -4997,7 +5029,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "useAutofill": true
         }
       ]
     },
@@ -5349,7 +5382,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "useAutofill": true
         },
         {
           "id": "howIHTDealtWithSplitting",
@@ -5960,7 +5994,8 @@
               "operator": "eq",
               "value": "ImperfectEnglish"
             }
-          ]
+          ],
+          "useAutofill": true
         },
         {
           "id": "includeWitnessDetails",

@@ -193,7 +193,6 @@ function getFullName(item) {
     .join(" ");
 }
 
-
 const PDFDocument = ({ formValues = {} }) => {
   return (
     <Document>
@@ -209,7 +208,6 @@ const PDFDocument = ({ formValues = {} }) => {
           {getFullName(formValues)}
         </Text>
         <Image style={styles.coverLogo} src={logo} />
-        <Text style={styles.firmLabel}>ARISTONE SOLICITORS</Text>
       </Page>
 
       {/* --- MAIN CONTENT PAGE --- */}
