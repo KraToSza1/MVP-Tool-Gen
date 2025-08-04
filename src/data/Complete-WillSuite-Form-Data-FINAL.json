@@ -139,19 +139,21 @@
           "type": "text",
           "label": "Mobile",
           "required": true,
-          "placeholder": "Mobile phone number",
-          "value": "",
+          "placeholder": "e.g. +44 7123 456789",
+          "value": "+44 ",
           "willClauseText": "The Testator's mobile number is {{field:mobile}}.",
-          "useAutofill": true
+          "useAutofill": true,
+          "prefix": "+44"
         },
         {
           "id": "tel2",
           "type": "text",
           "label": "Tel 2",
-          "placeholder": "Alternative phone number",
+          "placeholder": "e.g. +44 7123 456789",
           "value": "",
           "willClauseText": "The Testator's alternative phone number is {{field:tel2}}.",
-          "useAutofill": true
+          "useAutofill": true,
+          "prefix": "+44"
         },
         {
           "id": "email",
@@ -176,6 +178,19 @@
           "type": "section",
           "label": "Address",
           "subFields": [
+            {
+              "id": "country",
+              "label": "Country",
+              "type": "select",
+              "required": true,
+              "defaultValue": "United Kingdom",
+              "options": [
+                { "label": "United Kingdom", "value": "United Kingdom" },
+                { "label": "South Africa", "value": "South Africa" },
+                { "label": "United States", "value": "United States" },
+                { "label": "Other", "value": "Other" }
+              ]
+            },
             {
               "id": "personalinformationAddressPostcode",
               "type": "text",
@@ -346,7 +361,8 @@
               "type": "text",
               "label": "Full Name",
               "required": true,
-              "value": ""
+              "value": "",
+              "useAutofill": true
             },
             {
               "id": "email_dupe",
@@ -3327,7 +3343,7 @@
               "id": "monetaryGiftsDetails",
               "type": "textarea",
               "label": "Enter monetary gift details",
-              "placeholder": "Enter the monetary gifts you wish to make (e.g., '£10,000 to my nephew Richard Jones')",
+              "placeholder": "Enter the monetary gifts you wish to make (e.g., '\u00a310,000 to my nephew Richard Jones')",
               "rows": 5,
               "value": ""
             }
@@ -4852,7 +4868,7 @@
         {
           "id": "includeCypresClause",
           "type": "radio",
-          "label": "Include Cy-près clause?",
+          "label": "Include Cy-pr\u00e8s clause?",
           "infoText": "If the Testator has made a gift to a charity in their Will this clause will ensure that the gift will not fail if the charity ceases to exist at their death. Instead the gift will be made to another charity with similar charitable aims.",
           "options": [
             {

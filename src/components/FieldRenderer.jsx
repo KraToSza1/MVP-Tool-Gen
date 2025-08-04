@@ -125,6 +125,7 @@ function AddModalButton({ field, parentSection, formValues, setFormValues }) {
       )}
     </>
   );
+
 }
 
 // --- MAIN FIELD RENDERER ---
@@ -195,6 +196,10 @@ if (field.type === "array" && Array.isArray(field.subFields)) {
     let inputType = field.type;
     if (field.id.toLowerCase().includes('email')) inputType = 'email';
     if (field.id.toLowerCase().includes('mobile') || field.id.toLowerCase().includes('tel')) inputType = 'tel';
+    if (field.id.toLowerCase().includes('mobile') && !formValues[field.id]) formValues[field.id] = '+44';
+    if (field.id.toLowerCase() === 'country' && !formValues[field.id]) {
+  formValues[field.id] = 'United Kingdom';}
+
 
     const shouldUseAutofill = field.useAutofill === true;
     const autofillOptions = shouldUseAutofill ? getAutofillOptions(field, formValues) : [];
@@ -233,7 +238,35 @@ if (field.type === "array" && Array.isArray(field.subFields)) {
         )}
       </div>
     );
+    
   }
+
+  // --- Dropdown Select field ---
+if (field.type === 'select' && Array.isArray(field.options)) {
+  return (
+    <div className="mb-6">
+      <label className="block font-semibold text-gray-800 mb-1">
+        {field.label}
+        {field.required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <select
+        value={formValues[field.id] || field.defaultValue || ''}
+        onChange={e =>
+          setFormValues(prev => ({ ...prev, [field.id]: e.target.value }))
+        }
+        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 bg-white"
+        required={field.required}
+      >
+        <option value="" disabled>Select...</option>
+        {field.options.map((opt, idx) => (
+          <option key={`${field.id}-opt-${idx}`} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
   // --- Textarea field ---
   if (field.type === 'textarea') {

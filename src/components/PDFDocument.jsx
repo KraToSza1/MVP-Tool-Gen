@@ -279,6 +279,53 @@ const PDFDocument = ({ formValues = {} }) => {
               This is the last clause of my Will and is only followed by the attestation statement.
             </Text>
           </View>
+            {(formValues.mobile || formValues.country || formValues.postcode || formValues.address1 || formValues.email || formValues.occupation) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
+
+            {formValues.mobile && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Mobile:</Text> {formValues.mobile}
+              </Text>
+            )}
+            {formValues.email && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Email:</Text> {formValues.email}
+              </Text>
+            )}
+            {formValues.occupation && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Occupation:</Text> {formValues.occupation}
+              </Text>
+            )}
+            {formValues.country && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Country:</Text> {formValues.country}
+              </Text>
+            )}
+            {formValues.postcode && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Postcode:</Text> {formValues.postcode}
+              </Text>
+            )}
+            {formValues.address1 && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Address 1:</Text> {formValues.address1}
+              </Text>
+            )}
+            {formValues.address2 && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Address 2:</Text> {formValues.address2}
+              </Text>
+            )}
+            {formValues.address3 && (
+              <Text style={styles.clause}>
+                <Text style={styles.clauseNum}>Address 3:</Text> {formValues.address3}
+              </Text>
+            )}
+          </View>
+        )}
+
 
           {/* ----- DYNAMIC FORM-DATA INSERTIONS ----- */}
 
